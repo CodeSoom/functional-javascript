@@ -350,6 +350,276 @@ if (restaurants.length === 0) {
 
 만들어 놓으면 바꿀 수 없는 key value 자료형.
 
+## 펑터란 무엇인가?
+
+매핑이 가능한 자료형
+
+## 모나드란 무엇인가?
+
+Context가 있는 값에 일반 값을 받고 컨텍스트가 있는 값을 반환하는 함수를 매핑할 수 있는 자료형.
+
+### Maybe 예제
+
+```js
+class Maybe {
+  static just(a) {
+    return new Just(a);
+  }
+
+  static nothing() {
+    return new Nothing();
+  }
+
+  static fromNullable(a) {
+    return (a !== null && a !== undefined) ? Maybe.just(a) : Maybe.nothing();
+  }
+
+  static of(a) {
+    return Maybe.just(a);
+  }
+
+  get isNothing() {
+    return false;
+  }
+
+  get isJust() {
+    return false;
+  }
+}
+class Just extends Maybe {
+  constructor(value) {
+    super();
+    this._value = value;
+  }
+
+  get value() {
+    return this._value;
+  }
+
+  map(f) {
+    return Maybe.fromNullable(f(this._value));
+  }
+
+  chain(f) {
+    return f(this._value);
+  }
+
+  getOrElse() {
+    return this._value;
+  }
+
+  filter(f) {
+    Maybe.fromNullable(f(this._value) ? this._value : null);
+  }
+
+  get isJust() {
+    return true;
+  }
+
+  toString() {
+    return `Maybe.Just(${this._value})`;
+  }
+}
+class Nothing extends Maybe {
+  map(f) {
+    return this;
+  }
+
+  chain(f) {
+    return this;
+  }
+
+  get value() {
+    throw new TypeError('Nothing 값을 가져올 수 없습니다.');
+  }
+
+  getOrElse(other) {
+    return other;
+  }
+
+  filter() {
+    return this._value;
+  }
+
+  get isNothing() {
+    return true;
+  }
+
+  toString() {
+    return 'Maybe.Nothing';
+  }
+}
+
+const benefits = {
+  PERCENT: '%',
+  PRICE: '원',
+};
+
+const getAmountText = ({ type, amount }) =>
+  Maybe.just(type)
+    .map(getPropertOf(benefits))
+    .map((it) => `${amount} ${it}`)
+    .getOrElse('');
+
+test('maybe', () => {
+  const amount = 10000;
+  expect(getAmountText({ type: 'PRICE', amount }))
+    .toBe(`${amount} 원`);
+
+  expect(getAmountText({ type: 'PERCENT', amount }))
+    .toBe(`${amount} %`);
+
+  expect(getAmountText({ type: 'FREE', amount }))
+    .toBe('');
+});
+```
+
+### Either 예제
+
+```js
+class Either {
+  constructor(value) {
+    this._value = value;
+  }
+
+  get value() {
+    return this._value;
+  }
+
+  static left(a) {
+    return new Left(a);
+  }
+
+  static right(a) {
+    return new Right(a);
+  }
+
+  static fromNullable(val) {
+    return val !== null && val !== undefined ? Either.right(val) : Either.left(val);
+  }
+
+  static of(a) {
+    return Either.right(a);
+  }
+}
+
+class Left extends Either {
+  map(_) {
+    return this; // noop
+  }
+
+  get value() {
+    throw new TypeError("Can't extract the value of a Left(a).");
+  }
+
+  getOrElse(other) {
+    return other;
+  }
+
+  orElse(f) {
+    return f(this._value);
+  }
+
+  chain(f) {
+    return this;
+  }
+
+  getOrElseThrow(a) {
+    throw new Error(a);
+  }
+
+  filter(f) {
+    return this;
+  }
+
+  get isRight() {
+    return false;
+  }
+
+  get isLeft() {
+    return true;
+  }
+
+  toString() {
+    return `Either.Left(${this._value})`;
+  }
+
+  tap(f) {
+    return this;
+  }
+}
+
+class Right extends Either {
+  map(f) {
+    return Either.of(f(this._value));
+  }
+
+  getOrElse(other) {
+    return this._value;
+  }
+
+  orElse() {
+    return this;
+  }
+
+  chain(f) {
+    return f(this._value);
+  }
+
+  getOrElseThrow(_) {
+    return this._value;
+  }
+
+  filter(f) {
+    return Either.fromNullable(f(this._value) ? this._value : null);
+  }
+
+  get isRight() {
+    return true;
+  }
+
+  get isLeft() {
+    return false;
+  }
+
+  tap(f) {
+    f();
+    return this;
+  }
+
+  toString() {
+    return `Either.Right(${this._value})`;
+  }
+}
+
+const getStickers = (status) => new Promise((resolve, reject) => {
+  if (status === true) {
+    resolve(
+      Either.right({
+        stickers: ['할인', '증정'],
+        total: 2
+      })
+    );
+  } else {
+    resolve(Either.left('getStickers error'));
+  }
+});
+
+test('either', async () => {
+  let error;
+  const either = await getStickers(true);
+
+  either
+    .map((it) => it.stickers.filter((i) => i === '할인'))
+    .tap(() => {
+      console.log('성공!');
+    })
+    .orElse((err) => {
+      error = err;
+      console.log('실패!');
+    });
+});
+```
 
 ## See also
 
