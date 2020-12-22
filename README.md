@@ -621,6 +621,109 @@ test('either', async () => {
 });
 ```
 
+## 중첩된 함수를 사용할 때 왜 오버헤드가 발생하는가?
+
+함수를 호출할 때 마다 스택 프레임이 생긴다. 그래서 깊이 중첩되면 스택 프레임도 많이 생긴다. 그래서 메모리를 과다하게 점유할 가능성이 있고 또는 stack overflow 문제가 발생할 수 있다.
+
+```js
+const curriedParseInt = (radix) => (number) => praseInt(number, radix);
+const praseHex = curriedParseInt(16);
+const curriedParseInt = (16) => {
+  // 클로저
+  // 렉시컬 environment
+  return (number) => praseInt(number, 16);
+}
+
+```
+
+### 오버헤드란 무엇인가?
+
+In computer science, overhead is any combination of excess or indirect computation time, memory, bandwidth, or other resources that are required to perform a specific task.
+
+It is a special case of engineering overhead. Overhead can be a deciding factor in software design, with regard to structure, error correction, and feature inclusion. Examples of computing overhead may be found in functional programming[citation needed], data transfer, and data structures.
+
+## Lazy evaluation이란 무엇인가?
+
+실제로 필요할 때 까지 평가를 미루는 것
+
+1. operator 를 사용하는 방법
+2. 함수를 이용하는 방법
+
+```js
+true || SometingWrong // 에러 안남
+
+// or
+
+function wrong() {
+  SomethingWrong
+}
+// 에러안남
+```
+
+```js
+class Person() {
+  name: string;
+  age: number;
+  
+  coordinates: {
+    latitude: number;
+    longitude: number;
+  }
+
+  // 오래걸림! 1초
+  distance: () => getDistance(to, from),
+}
+```
+
+### 왜 사용하는가?
+
+실제로 값이 필요할 때 까지 평가를 미루기 위해서
+
+## 메모이제이션이란 무엇인가?
+
+입력값에 따른 결과값을 메모리에 저장해놨다가, 만약에 같은 입력값이 들어오면 함수를 실행하지 않고 저장된 값을 반환하도록 하는 것.
+
+## 꼬리호출 최적화란 무엇인가?
+
+꼬리호출 최적화를 하지 않으면 왜 스택이 쌓일까요?
+* 아직 연산이 안끝났기 때문에
+
+컴파일러가 꼬리호출 최적화를 지원한다는 것이 무슨 의미일까?
+* 반복문으로 바꿔준다.
+
+```js
+function f(n) {
+  if (n <= 0) {
+    return 0;
+  }
+
+  return 1 - f(n - 1);
+}
+```
+
+## 비동기 코드에서 올바른 순서를 어떻게 보장할 수 있는가?
+
+응답이 오는 시점에 실행될 코드를 지정해놓고 코드를 실행해준다.
+
+## 제어의 역전이란 무엇인가?
+
+## CPS란? 무엇인가?
+
+코드스피츠 85 거침없는 자바스크립트 1회차 - 코드스피츠 - https://www.youtube.com/watch?v=0NsJsBdYVHI&list=PLBNdLLaRx_rImvbuZnfO-Ecv9OpuCNoCl
+
+## 제너레이터란 무엇인가?
+
+Continuation = 분할된 함수를 호출할 때 유지해야되는 상태
+일시중지를 이용한 프로그래밍 패러다임.
+일시중지하는 부분을 작게 쪼개야한다.
+=> 코드스피츠를 보자
+
+## 리액티브 프로그래밍이란 무엇인가?
+
+엑셀 프로그램
+
+## RxJs란 무엇인가
+
 ## See also
 
 * 함수형 프로그래밍이란 무엇인가? - https://medium.com/@jooyunghan/%ED%95%A8%EC%88%98%ED%98%95-%ED%94%84%EB%A1%9C%EA%B7%B8%EB%9E%98%EB%B0%8D%EC%9D%B4%EB%9E%80-%EB%AC%B4%EC%97%87%EC%9D%B8%EA%B0%80-fab4e960d263
